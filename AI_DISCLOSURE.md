@@ -84,4 +84,8 @@ How the output was checked:
 - The evaluation in `eval/` runs the real stack through its API and reports measured accuracy, timing and failure rates (`eval/results/report.md`).
 - Bugs found by running the system rather than reading code, for example: OCR losing all text on sparse pages because of an auto-contrast cutoff, Celery's prefork pool crashing on macOS, and jobs lost when a worker died before acknowledging them (fixed with stale-job recovery).
 
+## 3. Walkthrough video
+
+The walkthrough video is a real screen recording of the running system (Playwright drove the browser on the local Docker stack; nothing is mocked). The English narration is a synthetic voice (Microsoft neural text-to-speech, voice `en-US-AndrewNeural`) reading a script I approved, and the slides come from `docs/presentation.html`.
+
 I can explain and defend every part of this codebase in the interview.
