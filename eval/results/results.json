@@ -1,0 +1,1143 @@
+{
+  "meta": {
+    "started": "2026-11-04T05:57:10+00:00",
+    "llm": "ollama/qwen2.5-coder:7b",
+    "embedding": "ollama/nomic-embed-text",
+    "datasets": [
+      "synthetic",
+      "public"
+    ]
+  },
+  "documents": 74,
+  "document_success_rate": 98.6,
+  "document_failure_rate": 0.0,
+  "corrupt_files_rejected": "4/4",
+  "field_accuracy_overall": 96.3,
+  "field_accuracy": {
+    "invoice_number": {
+      "accuracy": 94.9,
+      "n": 78
+    },
+    "invoice_date": {
+      "accuracy": 95.9,
+      "n": 98
+    },
+    "supplier_name": {
+      "accuracy": 92.9,
+      "n": 98
+    },
+    "customer_name": {
+      "accuracy": 96.2,
+      "n": 78
+    },
+    "subtotal": {
+      "accuracy": 100.0,
+      "n": 78
+    },
+    "tax": {
+      "accuracy": 98.7,
+      "n": 78
+    },
+    "total": {
+      "accuracy": 93.9,
+      "n": 98
+    },
+    "currency": {
+      "accuracy": 100.0,
+      "n": 78
+    }
+  },
+  "field_accuracy_by_kind": {
+    "pdf_digital": {
+      "invoice_number": 100.0,
+      "invoice_date": 100.0,
+      "supplier_name": 100.0,
+      "customer_name": 100.0,
+      "subtotal": 100.0,
+      "tax": 100.0,
+      "total": 100.0,
+      "currency": 100.0
+    },
+    "pdf_multipage": {
+      "invoice_number": 100.0,
+      "invoice_date": 100.0,
+      "supplier_name": 100.0,
+      "customer_name": 100.0,
+      "subtotal": 100.0,
+      "tax": 100.0,
+      "total": 100.0,
+      "currency": 100.0
+    },
+    "pdf_bundle": {
+      "invoice_number": 100.0,
+      "invoice_date": 100.0,
+      "supplier_name": 100.0,
+      "customer_name": 100.0,
+      "subtotal": 100.0,
+      "tax": 100.0,
+      "total": 100.0,
+      "currency": 100.0
+    },
+    "pdf_scanned": {
+      "invoice_number": 75.0,
+      "invoice_date": 100.0,
+      "supplier_name": 100.0,
+      "customer_name": 87.5,
+      "subtotal": 100.0,
+      "tax": 100.0,
+      "total": 100.0,
+      "currency": 100.0
+    },
+    "image_jpg": {
+      "invoice_number": 75.0,
+      "invoice_date": 100.0,
+      "supplier_name": 100.0,
+      "customer_name": 100.0,
+      "subtotal": 100.0,
+      "tax": 100.0,
+      "total": 100.0,
+      "currency": 100.0
+    },
+    "image_png": {
+      "invoice_number": 75.0,
+      "invoice_date": 100.0,
+      "supplier_name": 100.0,
+      "customer_name": 75.0,
+      "subtotal": 100.0,
+      "tax": 100.0,
+      "total": 100.0,
+      "currency": 100.0
+    },
+    "tiff": {
+      "invoice_number": 100.0,
+      "invoice_date": 100.0,
+      "supplier_name": 100.0,
+      "customer_name": 100.0,
+      "subtotal": 100.0,
+      "tax": 100.0,
+      "total": 100.0,
+      "currency": 100.0
+    },
+    "xlsx": {
+      "invoice_number": 100.0,
+      "invoice_date": 100.0,
+      "supplier_name": 100.0,
+      "customer_name": 100.0,
+      "subtotal": 100.0,
+      "tax": 100.0,
+      "total": 100.0,
+      "currency": 100.0
+    },
+    "csv": {
+      "invoice_number": 100.0,
+      "invoice_date": 100.0,
+      "supplier_name": 100.0,
+      "customer_name": 88.9,
+      "subtotal": 100.0,
+      "tax": 88.9,
+      "total": 100.0,
+      "currency": 100.0
+    },
+    "xls": {
+      "invoice_number": 100.0,
+      "invoice_date": 100.0,
+      "supplier_name": 100.0,
+      "customer_name": 100.0,
+      "subtotal": 100.0,
+      "tax": 100.0,
+      "total": 100.0,
+      "currency": 100.0
+    },
+    "public_receipt": {
+      "supplier_name": 65.0,
+      "invoice_date": 80.0,
+      "total": 70.0
+    }
+  },
+  "invoice_exact_match_rate": 91.0,
+  "invoice_detection": {
+    "expected": 98,
+    "found": 98,
+    "matched": 97,
+    "recall": 99.0,
+    "precision": 99.0
+  },
+  "line_items": {
+    "precision": 99.1,
+    "recall": 96.9,
+    "f1": 98.0
+  },
+  "false_review_rate": 10.6,
+  "validation_checks": [
+    {
+      "file": "wrong_total.pdf",
+      "check": "TOTAL_MISMATCH",
+      "passed": true
+    },
+    {
+      "file": "xcheck_match.pdf + xcheck_match.xlsx",
+      "check": "cross-document match",
+      "passed": true
+    },
+    {
+      "file": "xcheck_mismatch.pdf + xcheck_mismatch.xlsx",
+      "check": "cross-document mismatch",
+      "passed": true
+    }
+  ],
+  "processing_ms": {
+    "mean": 110093,
+    "p50": 95780,
+    "p95": 305649,
+    "max": 445654
+  },
+  "processing_ms_by_kind": {
+    "csv": {
+      "n": 3,
+      "p50": 736,
+      "p95": 1515
+    },
+    "image_jpg": {
+      "n": 4,
+      "p50": 101212,
+      "p95": 115496
+    },
+    "image_png": {
+      "n": 4,
+      "p50": 97147,
+      "p95": 106560
+    },
+    "pdf_bundle": {
+      "n": 2,
+      "p50": 230561,
+      "p95": 445654
+    },
+    "pdf_digital": {
+      "n": 15,
+      "p50": 123918,
+      "p95": 228976
+    },
+    "pdf_multipage": {
+      "n": 3,
+      "p50": 216522,
+      "p95": 323638
+    },
+    "pdf_scanned": {
+      "n": 8,
+      "p50": 105511,
+      "p95": 239861
+    },
+    "public_receipt": {
+      "n": 20,
+      "p50": 91243,
+      "p95": 108543
+    },
+    "tiff": {
+      "n": 3,
+      "p50": 244435,
+      "p95": 316114
+    },
+    "xls": {
+      "n": 3,
+      "p50": 458,
+      "p95": 487
+    },
+    "xlsx": {
+      "n": 5,
+      "p50": 1223,
+      "p95": 2929
+    }
+  },
+  "wall_clock_s": 2251.2,
+  "throughput_pages_per_min": 2.3,
+  "docs": [
+    {
+      "file": "digital_00.pdf",
+      "kind": "pdf_digital",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 31823,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "digital_01.pdf",
+      "kind": "pdf_digital",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 13590,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "digital_02.pdf",
+      "kind": "pdf_digital",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 67681,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "digital_03.pdf",
+      "kind": "pdf_digital",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 47331,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "digital_04.pdf",
+      "kind": "pdf_digital",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 80030,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "digital_05.pdf",
+      "kind": "pdf_digital",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 100787,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "digital_06.pdf",
+      "kind": "pdf_digital",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 107739,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "digital_07.pdf",
+      "kind": "pdf_digital",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 123918,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "digital_08.pdf",
+      "kind": "pdf_digital",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 148462,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "digital_09.pdf",
+      "kind": "pdf_digital",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 141460,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "digital_10.pdf",
+      "kind": "pdf_digital",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 161196,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "digital_11.pdf",
+      "kind": "pdf_digital",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 163772,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "multipage_00.pdf",
+      "kind": "pdf_multipage",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 216522,
+      "pages": 2,
+      "error": null
+    },
+    {
+      "file": "multipage_01.pdf",
+      "kind": "pdf_multipage",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 2,
+      "processing_ms": 323638,
+      "pages": 2,
+      "error": null
+    },
+    {
+      "file": "multipage_02.pdf",
+      "kind": "pdf_multipage",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 157057,
+      "pages": 2,
+      "error": null
+    },
+    {
+      "file": "bundle_00.pdf",
+      "kind": "pdf_bundle",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 4,
+      "invoices_found": 4,
+      "processing_ms": 230561,
+      "pages": 4,
+      "error": null
+    },
+    {
+      "file": "bundle_01.pdf",
+      "kind": "pdf_bundle",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 5,
+      "invoices_found": 5,
+      "processing_ms": 445654,
+      "pages": 5,
+      "error": null
+    },
+    {
+      "file": "scanned_light_00.pdf",
+      "kind": "pdf_scanned",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 239861,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "scanned_medium_01.pdf",
+      "kind": "pdf_scanned",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 179660,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "scanned_heavy_02.pdf",
+      "kind": "pdf_scanned",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 165592,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "scanned_light_03.pdf",
+      "kind": "pdf_scanned",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 82661,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "scanned_medium_04.pdf",
+      "kind": "pdf_scanned",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 85879,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "scanned_heavy_05.pdf",
+      "kind": "pdf_scanned",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 86090,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "scanned_light_06.pdf",
+      "kind": "pdf_scanned",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 98827,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "scanned_medium_07.pdf",
+      "kind": "pdf_scanned",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 105511,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "image_light_00.jpg",
+      "kind": "image_jpg",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 115496,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "image_medium_01.png",
+      "kind": "image_png",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 106560,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "image_heavy_02.jpg",
+      "kind": "image_jpg",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 101212,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "image_light_03.png",
+      "kind": "image_png",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 97147,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "image_medium_04.jpg",
+      "kind": "image_jpg",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 90327,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "image_heavy_05.png",
+      "kind": "image_png",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 95780,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "image_light_06.jpg",
+      "kind": "image_jpg",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 93213,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "image_medium_07.png",
+      "kind": "image_png",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 94486,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "scan_00.tiff",
+      "kind": "tiff",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 180366,
+      "pages": 2,
+      "error": null
+    },
+    {
+      "file": "scan_01.tiff",
+      "kind": "tiff",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 244435,
+      "pages": 2,
+      "error": null
+    },
+    {
+      "file": "scan_02.tiff",
+      "kind": "tiff",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 316114,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "ledger_00.xlsx",
+      "kind": "xlsx",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 5,
+      "invoices_found": 5,
+      "processing_ms": 2929,
+      "pages": 2,
+      "error": null
+    },
+    {
+      "file": "export_00.csv",
+      "kind": "csv",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 3,
+      "invoices_found": 3,
+      "processing_ms": 673,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "legacy_00.xls",
+      "kind": "xls",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 2,
+      "invoices_found": 2,
+      "processing_ms": 458,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "ledger_01.xlsx",
+      "kind": "xlsx",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 5,
+      "invoices_found": 5,
+      "processing_ms": 1223,
+      "pages": 2,
+      "error": null
+    },
+    {
+      "file": "export_01.csv",
+      "kind": "csv",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 3,
+      "invoices_found": 3,
+      "processing_ms": 1515,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "legacy_01.xls",
+      "kind": "xls",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 2,
+      "invoices_found": 2,
+      "processing_ms": 354,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "ledger_02.xlsx",
+      "kind": "xlsx",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 5,
+      "invoices_found": 5,
+      "processing_ms": 883,
+      "pages": 2,
+      "error": null
+    },
+    {
+      "file": "export_02.csv",
+      "kind": "csv",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 3,
+      "invoices_found": 3,
+      "processing_ms": 736,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "legacy_02.xls",
+      "kind": "xls",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 2,
+      "invoices_found": 2,
+      "processing_ms": 487,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "xcheck_match.pdf",
+      "kind": "pdf_digital",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 305649,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "xcheck_match.xlsx",
+      "kind": "xlsx",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 1319,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "xcheck_mismatch.pdf",
+      "kind": "pdf_digital",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 228976,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "xcheck_mismatch.xlsx",
+      "kind": "xlsx",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 462,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "wrong_total.pdf",
+      "kind": "pdf_digital",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 174930,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "corrupt_truncated.pdf",
+      "kind": "corrupt",
+      "status": "failed",
+      "ok": true,
+      "expect_fail": true,
+      "invoices_expected": 0,
+      "invoices_found": 0,
+      "processing_ms": 81,
+      "pages": null,
+      "error": "Corrupted or unreadable PDF: Failed to open file '/Users/arifulhoque/interview-prep/careguide-assignment/doc-intel/backend/storage/68f44d70dbee45cca2e5a28a9615fe17.bin'."
+    },
+    {
+      "file": "corrupt_random.pdf",
+      "kind": "corrupt",
+      "status": "failed",
+      "ok": true,
+      "expect_fail": true,
+      "invoices_expected": 0,
+      "invoices_found": 0,
+      "processing_ms": null,
+      "pages": null,
+      "error": "Unsupported or unrecognised file content"
+    },
+    {
+      "file": "corrupt_sheet.xlsx",
+      "kind": "corrupt",
+      "status": "failed",
+      "ok": true,
+      "expect_fail": true,
+      "invoices_expected": 0,
+      "invoices_found": 0,
+      "processing_ms": null,
+      "pages": null,
+      "error": "Unsupported or unrecognised file content"
+    },
+    {
+      "file": "blank.png",
+      "kind": "blank",
+      "status": "failed",
+      "ok": true,
+      "expect_fail": true,
+      "invoices_expected": 0,
+      "invoices_found": 0,
+      "processing_ms": 854,
+      "pages": null,
+      "error": "No readable text found (blank or unreadable document)"
+    },
+    {
+      "file": "sroie_X00016469670.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 91823,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X00016469671.jpg",
+      "kind": "public_receipt",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 76604,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005200931.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 98157,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005230605.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 86274,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005230616.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 101355,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005230621.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 106732,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005230648.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 88124,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005230657.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 98542,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005230659.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 91243,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005268275.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 98091,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005268408.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 108543,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005288570.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": false,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 0,
+      "processing_ms": 82001,
+      "pages": 1,
+      "error": "No invoice found in this document"
+    },
+    {
+      "file": "sroie_X51005301666.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 82466,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005337867.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 85129,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005337877.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 86352,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005361906.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 113931,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005361908.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 104585,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005361912.jpg",
+      "kind": "public_receipt",
+      "status": "completed",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 88247,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005361923.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 75937,
+      "pages": 1,
+      "error": null
+    },
+    {
+      "file": "sroie_X51005365187.jpg",
+      "kind": "public_receipt",
+      "status": "needs_review",
+      "ok": true,
+      "expect_fail": false,
+      "invoices_expected": 1,
+      "invoices_found": 1,
+      "processing_ms": 81326,
+      "pages": 1,
+      "error": null
+    }
+  ]
+}
