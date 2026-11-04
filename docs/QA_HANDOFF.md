@@ -17,6 +17,42 @@ The whole system was built in one cycle and has been exercised on one machine (m
 
 ---
 
+## Not tested: read this first
+
+Nothing in this table was run or verified in this cycle. Treat these areas as unknown, not as working.
+
+| # | Area | Not tested | Why | Risk if it is wrong | How to test it |
+|---|---|---|---|---|---|
+| 1 | Hosted LLMs | **No live call to Claude, OpenAI or Gemini.** Their adapters are unit-tested with mocked SDKs only | No API key was available; the run used the local Ollama model | A live API may reject the schema or a default model name (`claude-opus-5-5`, `gpt-5-mini`, `gemini-2.5-flash`); Claude refusal fallback never ran for real | Add a key in Settings, press **Test**, upload a PDF, then run `eval/run_eval.py` |
+| 2 | Hosted embeddings | OpenAI and Gemini embeddings at 768 dimensions were never called | Same as above | Semantic search breaks if a provider ignores the dimension setting | **Test** an embedding provider; run a semantic search |
+| 3 | Accuracy with a hosted model | All accuracy numbers come from a **7B local model** | No hosted key | Real accuracy with Claude/GPT/Gemini is unknown (expected higher, not measured) | `eval/run_eval.py` with the hosted provider active |
+| 4 | Processing time | Times were measured on one laptop with one local GPU shared by 4 jobs | No hosted model, no server | Real-world latency per document is unknown | Same eval run on target hardware with a hosted model |
+| 5 | Full 1000-page document with the LLM | The 1005-page benchmark covers text extraction and segmentation only; no LLM pass over 480 chunks | Hours of local LLM time | Rate limits, cost and total time for a 1000-page file are unmeasured | Upload a 1000-page PDF with a hosted provider and watch the timeline |
+| 6 | Scaling out | `--scale worker=N` and multi-host deployment were never run | One machine, one worker container | Duplicate processing or lock issues under several workers are untested | `docker compose up -d --scale worker=4`, upload 50 files |
+| 7 | Load and soak | No load test of the API (many users, many concurrent uploads) and no long soak run | Out of time for the assessment | Throughput limits and memory growth are unknown | k6 or Locust against `/api/documents` and `/api/search` |
+| 8 | Large uploads through the web proxy | The 50 MB limit was tested by lowering it to 0 MB in a unit test; no real 50 MB file through the Next.js proxy | Not run | Proxy streaming or timeouts on big files may fail | Upload a 45 MB scanned PDF from the browser |
+| 9 | Real business documents | Only synthetic invoices and 20 public receipts (SROIE); no real company invoices, no handwriting | No real data available | Accuracy on real layouts may be lower than measured | Run the eval on a labeled sample of real invoices |
+| 10 | Languages | Only English; Tesseract has only the English pack | Not requested in the brief | Bangla or Arabic documents will OCR badly | Install `tesseract-ocr-ben`, test a Bangla invoice |
+| 11 | Rotated scans | Synthetic scans tilt at most 3 degrees; pages rotated 90 or 180 degrees were never tested | Not in the dataset | The rotation fix (OSD) may not trigger as expected | Upload a scan rotated 90 degrees |
+| 12 | Spreadsheet edge cases | Key-value invoice layouts in Excel going through the LLM, formulas without cached values, merged cells, password-protected XLSX | Not in the dataset | Wrong or empty values from unusual workbooks | Upload such workbooks and check the extracted fields |
+| 13 | PDF edge cases | PDFs with only an owner password (opened with an empty user password) | Only a user-password PDF is tested | Such PDFs might be rejected or read wrongly | Upload an owner-password-only PDF |
+| 14 | Re-embedding job | `reembed_all_task` after changing the embedding provider or model has no test | Not covered | Semantic search could return nothing after a switch | Switch embedding provider, wait, run a semantic search |
+| 15 | Retry timing on a real outage | Backoff (15 s, 30 s, 60 s) was tested only in eager mode with a fake error | Not run against a real outage | Real retry timing and the final failure message are unverified | Stop Ollama during a job and watch the timeline |
+| 16 | Killing a worker mid-job in Docker | Recovery was seen after a machine restart, not with `docker compose kill worker` | Not run | Behaviour may differ from the restart case | Kill the worker container during a long OCR job |
+| 17 | Prompt injection | The prompt treats document text as data, but no adversarial document was tried | Not run | A crafted invoice could steer extraction | Upload an invoice that contains "ignore previous instructions..." |
+| 18 | Security scanning | No penetration test, no OWASP ZAP scan, no `pip-audit`; `npm audit` flags PostCSS bundled in Next 15 (build time only) | Out of time | Unknown vulnerabilities in code or dependencies | Run ZAP against the stack, `pip-audit`, upgrade Next |
+| 19 | CSRF and HTTPS | CSRF relies on SameSite=Strict cookies; never tested cross-site; never run behind TLS with `COOKIE_SECURE=true` | Local HTTP only | Misconfiguration in production | Deploy behind HTTPS and try a cross-site POST |
+| 20 | Login rate limit per client | Behind the web proxy the limiter sees the proxy address, so the limit is per email only | Known design gap | One client can try many emails | Trusted-proxy header handling (next step) |
+| 21 | Browsers and devices | Only Chromium (Playwright) at 1440 px; no Safari, Firefox or mobile layout | Not run | Layout or input issues on other browsers | Open each screen in Safari, Firefox and a phone |
+| 22 | Accessibility | Labels, roles and keyboard focus only; no screen reader and no axe audit | Not run | Screen-reader users may hit barriers | axe DevTools plus VoiceOver pass |
+| 23 | Frontend automated tests | One unit check; the browser checks were manual (Playwright) and are not in the repository as a test suite | Out of time | UI regressions are not caught automatically | Add a Playwright suite to CI |
+| 24 | Database lifecycle | No migrations (schema created on start), no backup and restore, no upgrade of an existing database | Not needed for the assessment | Schema changes later need Alembic | Add Alembic, rehearse backup and restore |
+| 25 | Secret rotation | Changing `ENCRYPTION_KEY` makes stored provider keys unreadable; no rotation tool | Not implemented | Keys must be re-entered after a rotation | Build a re-encrypt command |
+| 26 | Linux Docker host | Only Docker Desktop on macOS; `host.docker.internal` on Linux relies on `host-gateway` | One machine | Ollama on the host may be unreachable from containers on Linux | Run the stack on a Linux server |
+| 27 | Ambiguous dates | Day-first is assumed for dates like `03/04/2025` (flagged at confidence 0.6); US-format invoices were not evaluated | Not in the dataset | US invoices with ambiguous dates may be read wrongly (flagged for review) | Evaluate US-format invoices |
+
+---
+
 ## Release train: what is actually in scope
 
 | Service | Image | Scope |
@@ -209,13 +245,7 @@ Each chunk of text goes to the active provider with a strict JSON schema in whic
 
 **6. Measured baseline to compare against** (local Ollama, 74 documents): field accuracy 96.3%, invoice detection 99.0%, line items F1 98.0%, document success 98.6%, unexpected failures 0%, corrupted files rejected 4/4, correct invoices still sent to review 10.6%. Weakest areas: invoice numbers on scans (75%, OCR) and real receipts (date 80%, total 70%, supplier 65%).
 
-**7. Coverage this cycle did not give you.**
-- No live call to **Claude, OpenAI or Gemini**; only Ollama ran end to end.
-- No multi-node or multi-worker-host run; workers were scaled only on one machine.
-- No load test beyond the 74-document evaluation and the 1000-page benchmark.
-- No screen-reader pass beyond labels and roles; no mobile layout pass.
-- No test with real customer documents or languages other than English (Tesseract has only the English pack).
-- Encryption key rotation is not implemented.
+**7. Coverage this cycle did not give you:** see [Not tested](#not-tested-read-this-first) at the top; 27 areas are listed there with the risk and how to test each.
 
 ---
 
