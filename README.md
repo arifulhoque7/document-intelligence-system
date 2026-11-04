@@ -28,7 +28,7 @@ An AI-powered system that reads business documents (digital and scanned PDF, JPG
 12. [Project structure](#12-project-structure)
 13. [Configuration](#13-configuration)
 
-Further reading: [docs/QA_HANDOFF.md](docs/QA_HANDOFF.md) (QA handoff), [docs/database-schema.md](docs/database-schema.md) (column-level notes), [docs/schema.sql](docs/schema.sql) (generated DDL), [eval/results/report.md](eval/results/report.md), [eval/results/benchmark_large.md](eval/results/benchmark_large.md), [docs/test-results.txt](docs/test-results.txt), [AI_DISCLOSURE.md](AI_DISCLOSURE.md).
+Further reading: [docs/presentation.html](docs/presentation.html) (slide deck: open in a browser, arrow keys to move, click a diagram or press Z to zoom; regenerate with `python3 docs/build_presentation.py`), [docs/QA_HANDOFF.md](docs/QA_HANDOFF.md) (QA handoff), [docs/database-schema.md](docs/database-schema.md) (column-level notes), [docs/schema.sql](docs/schema.sql) (generated DDL), [eval/results/report.md](eval/results/report.md), [eval/results/benchmark_large.md](eval/results/benchmark_large.md), [docs/test-results.txt](docs/test-results.txt), [AI_DISCLOSURE.md](AI_DISCLOSURE.md).
 
 ## 1. Assignment coverage
 
@@ -740,7 +740,7 @@ Read the scanned row as: OCR, not the design, is the throughput limit (about 0.5
 │   ├── hooks/, lib/            data fetching, types, API client
 │   └── docs/screenshots/
 ├── eval/                       run_eval.py, fetch_public.py, benchmark_large.py, results/
-├── docs/                       QA_HANDOFF.md, database-schema.md, schema.sql, test-results.txt
+├── docs/                       presentation.html, QA_HANDOFF.md, database-schema.md, schema.sql, test-results.txt
 └── AI_DISCLOSURE.md
 ```
 
