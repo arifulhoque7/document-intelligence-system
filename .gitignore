@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+storage/
+node_modules/
+.next/
+frontend/next-env.d.ts
+eval/out/
+.DS_Store
+eval/dataset/
+.playwright-mcp/
+frontend/.env*
+!frontend/.env.example
