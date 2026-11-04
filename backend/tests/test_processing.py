@@ -131,6 +131,7 @@ def test_unrecognised_sheet_layout_is_left_for_llm(tmp_path):
         ("bad.xlsx", b"PK\x03\x04" + b"\x00" * 100, "xlsx", "Corrupted"),
         ("empty.csv", b",,\n,,\n", "csv", "empty"),
     ],
+    ids=["truncated-pdf", "blank-image", "corrupt-png", "corrupt-xlsx", "empty-csv"],
 )
 def test_failures_raise_clean_errors(tmp_path, rng, name, data, ftype, msg):
     if data is None:

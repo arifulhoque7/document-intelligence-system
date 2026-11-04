@@ -20,14 +20,14 @@ An AI-powered system that reads business documents (digital and scanned PDF, JPG
 5. [Architecture decision records](#5-architecture-decision-records)
 6. [API](#6-api)
 7. [Validation rules](#7-validation-rules)
-8. [Testing](#8-testing)
+8. [Testing and QA](#8-testing-and-qa)
 9. [Evaluation results](#9-evaluation-results)
 10. [Security](#10-security)
 11. [Scaling, limitations and next steps](#11-scaling-limitations-and-next-steps)
 12. [Project structure](#12-project-structure)
 13. [Configuration](#13-configuration)
 
-Further reading: [docs/database-schema.md](docs/database-schema.md) (column-level notes), [docs/schema.sql](docs/schema.sql) (generated DDL), [eval/results/report.md](eval/results/report.md), [eval/results/benchmark_large.md](eval/results/benchmark_large.md), [docs/test-results.txt](docs/test-results.txt), [AI_DISCLOSURE.md](AI_DISCLOSURE.md).
+Further reading: [docs/QA_HANDOFF.md](docs/QA_HANDOFF.md) (QA handoff), [docs/database-schema.md](docs/database-schema.md) (column-level notes), [docs/schema.sql](docs/schema.sql) (generated DDL), [eval/results/report.md](eval/results/report.md), [eval/results/benchmark_large.md](eval/results/benchmark_large.md), [docs/test-results.txt](docs/test-results.txt), [AI_DISCLOSURE.md](AI_DISCLOSURE.md).
 
 ## 1. Assignment coverage
 
@@ -39,7 +39,7 @@ Further reading: [docs/database-schema.md](docs/database-schema.md) (column-leve
 | 4. REST API with background processing and reprocessing | `backend/app/api/`, `backend/app/worker.py` ([API](#6-api)) |
 | 5. Database, keyword filtering, semantic search | `backend/app/models.py`, `backend/app/services/search.py` ([data model](#46-data-model)) |
 | 6. React/Next.js interface | `frontend/` ([screenshots](#2-screenshots)) |
-| 7. Tests and evaluation with measured metrics | `backend/tests/`, `eval/` ([testing](#8-testing), [results](#9-evaluation-results)) |
+| 7. Tests and evaluation with measured metrics | `backend/tests/`, `eval/` ([testing](#8-testing-and-qa), [results](#9-evaluation-results)) |
 | Scenario extra: PDF-PDF and PDF-Excel cross verification | `backend/app/services/invoices.py`, Cross-checks page |
 
 ## 2. Screenshots
@@ -571,22 +571,56 @@ Extracted invoice (`GET /api/invoices/{id}`, abridged). Missing values are `null
 | `DUPLICATE_INVOICE` | error / warning | Same supplier and number seen before (in the same document: error) |
 | `CROSS_DOC_MISMATCH` | error | Same invoice in another document with different values |
 
-## 8. Testing
+## 8. Testing and QA
+
+Everything below was run on this codebase; nothing is estimated. The full QA handoff, with step-by-step test cases per feature, the fixes found during QA and what was **not** covered, is in [docs/QA_HANDOFF.md](docs/QA_HANDOFF.md).
+
+### 8.1 How to run
 
 ```bash
 docker compose up -d db redis
-cd backend && .venv/bin/python -m pytest -q        # 72 passed (docs/test-results.txt)
-cd ../frontend && npm test && npm run build         # form-diff unit test, type check, lint
+cd backend && .venv/bin/python -m pytest -v     # 72 passed, output in docs/test-results.txt
+cd ../frontend && npm test && npm run build     # invoice form diff check, type check, lint
 ```
 
-Tests run against a real PostgreSQL database (`docintel_test`), execute Celery tasks inline, and replace the network LLM with a deterministic fake, so they are fast, free and repeatable.
+Backend tests run against a real PostgreSQL database (`docintel_test`, created by `backend/initdb/`), execute Celery tasks inline, and replace the network LLM with a deterministic fake that parses the synthetic layouts, so they are fast (about 27 s), free and repeatable. Test files are rendered on the fly by `devtools/synth.py`.
 
-| Suite | Covers |
-|---|---|
-| `test_processing.py` | Type detection by content; digital PDF; scanned PDF OCR; poor-quality images; multi-page PDF; multi-invoice splitting; multi-frame TIFF; XLSX with several sheets; XLS; CSV; corrupted, blank, encrypted files; page limit |
-| `test_normalize_validation.py` | Amount, date and currency parsing; every validation rule; tolerance; grounding |
-| `test_llm.py` | Strict schema; invalid JSON; schema violations; nulls stay null; hallucination detection; transient vs permanent error mapping; refusals; Gemini schema conversion |
-| `test_api.py` | Auth, roles, rate limit, security headers; mixed uploads; status and results; corrections, history, approval; keyword filters; keyword, semantic and hybrid search; cross-document checks; failed-job reprocessing; transient-failure retries; corrupted and oversized uploads; encrypted, masked provider keys |
+### 8.2 Automated tests (72)
+
+| Suite | Tests | What is proven |
+|---|---|---|
+| `test_processing.py` | 19 | Types detected by content even with the wrong extension; digital PDFs use the text layer; scanned PDFs fall back to OCR (confidence above 70%, number and total read); OCR on light and heavy degraded photos; a 40-item invoice spanning pages stays one chunk; a 4-invoice PDF splits into 4; every TIFF frame is read, totals on the last page; XLSX with two sheets, XLS and CSV map every field exactly; an unrecognised sheet layout is left for the LLM; truncated PDF, blank image, corrupt PNG, corrupt XLSX, empty CSV and password-protected PDF fail with clean messages; the page limit is enforced |
+| `test_normalize_validation.py` | 21 | Amount parsing for 10 formats (`1,234.50`, `1.234,50`, `(12.00)`, `BDT 3,000`, empty, text); dates in several formats with day-first ambiguity flagged; currency symbols and invoice-number keys; a clean invoice raises nothing; missing fields, total mismatch, line-item and sum mismatches, rounding tolerance, negative, future, implausible tax and unknown currency; invoices without tax; grounding caps confidence on values not in the text; reviewer-typed values are not flagged |
+| `test_llm.py` | 12 | The schema is strict at every level (closed objects, all keys required); invalid JSON and schema violations become errors; a missing key fails before any call; nulls stay null and are never filled in; a hallucinated supplier loses confidence; Claude 429 is transient and 400 permanent; Claude refusals are reported and requests carry structured output, low effort and fallbacks; OpenAI timeouts are transient; Claude has no embeddings; the Gemini schema is accepted by the Google SDK |
+| `test_api.py` | 20 | Login required; login rate limit; reviewers cannot change settings; security headers; a mixed batch (PDF, bundle, XLSX, CSV, a fake PDF with `../../` in its name) processes end to end with correct fields, events, text and attachment download; duplicates flagged; a wrong total is flagged, corrected, re-validated, versioned and approved; bad corrections refused (422); keyword filters and sort whitelist; keyword, semantic and hybrid search; semantic without an embedding provider (503) and hybrid fallback; PDF vs Excel cross-check flags both records; LLM failure then bulk reprocess; transient failure gives up cleanly; corrupted, empty and oversized uploads; spreadsheets never call the LLM; provider keys encrypted at rest and only shown masked; a redelivered job never reprocesses a finished document or wipes a correction |
+| `frontend/lib/invoiceForm.test.mjs` | 1 | The invoice form sends only changed fields, with null to clear |
+
+### 8.3 End-to-end and manual verification
+
+| Check | How | Result |
+|---|---|---|
+| Full Docker stack | `docker compose up --build -d` from a clean build | 5 services running; api, db and redis healthy |
+| Upload to result inside Docker | Log in through the web container's proxy, test the provider, upload a CSV and a heavily degraded scanned PDF | CSV: 3 invoices in 0.47 s. Scanned PDF: Tesseract in the container plus the LLM, all 8 fields and 4/4 line items correct in 22 s. Celery prefork pool works on Linux |
+| Every screen | Playwright against the production build in light and dark: login, dashboard, documents, document detail, invoice review (edit, save, history, approve), review queue, invoices, search, cross-checks, settings | All render with real data; screenshots in [section 2](#2-screenshots) |
+| Accuracy, success and failure rates | `eval/run_eval.py`: 74 labeled documents uploaded through the API | [Section 9](#9-evaluation-results) |
+| Large documents | `eval/benchmark_large.py`: 1005-page digital PDF and 100-page scanned PDF | 4.8 s and 56 s; [section 9](#9-evaluation-results) |
+| Recovery after a machine restart | Restarted the host with jobs pending | Found the redelivery bug below; fixed with a regression test |
+| Diagrams | Parsed and rendered all 10 Mermaid diagrams with Mermaid 11 | All render |
+
+### 8.4 Bugs found by testing (all fixed)
+
+| Found by | Bug | Fix |
+|---|---|---|
+| Running OCR on a multi-page TIFF | Auto-contrast with a 1% cutoff erased all text on nearly blank pages, losing the totals on page 2 | Contrast without cutoff, plus a raw-image retry |
+| Restarting the machine | Redelivered queue messages reprocessed finished documents and could wipe reviewer corrections | Worker skips documents that are not queued or processing |
+| Killing a worker | Unacknowledged jobs stayed queued for the broker's one-hour visibility timeout | Stale-job recovery after 10 minutes, in the UI and the API |
+| Testing a Gemini key from Settings | The Google SDK rejected the JSON schema; the endpoint returned a bare 500 | Schema converted to Gemini's subset; test endpoint reports any error as text |
+| Uploading the same file several times | The duplicate warning was repeated once per earlier copy | Issues de-duplicated |
+| Running the worker on macOS | Celery's prefork pool crashed | Threads pool for local development (documented); prefork in Docker |
+
+### 8.5 Not covered
+
+Live calls to Claude, OpenAI and Gemini (only the local Ollama model ran end to end; the hosted adapters are unit-tested with mocked SDKs), multi-host deployment, load beyond the evaluation set, screen readers and mobile layouts, and languages other than English. Details in [docs/QA_HANDOFF.md](docs/QA_HANDOFF.md#release-blockers-and-scope-notes).
 
 ## 9. Evaluation results
 
@@ -674,7 +708,7 @@ Read the scanned row as: OCR, not the design, is the throughput limit (about 0.5
 │   ├── hooks/, lib/            data fetching, types, API client
 │   └── docs/screenshots/
 ├── eval/                       run_eval.py, fetch_public.py, benchmark_large.py, results/
-├── docs/                       database-schema.md, schema.sql, test-results.txt
+├── docs/                       QA_HANDOFF.md, database-schema.md, schema.sql, test-results.txt
 └── AI_DISCLOSURE.md
 ```
 
