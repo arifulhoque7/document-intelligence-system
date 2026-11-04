@@ -73,6 +73,10 @@ Prompts I gave the assistant (in order):
 4. "keep one which is fruit full as it is task for interview only" (backend stack choice)
 5. Planning answers listed in the table above
 6. "make sure to architecture properly based on a senior developer"
+7. "design update like ecomdrive check and update design propperly" (match the design system of my earlier EcomDrive project)
+8. "commit in git make a new private repo in my git and push proeprly"
+9. "apply them if needed" (finish the benchmark, clean demo data, screenshots, README numbers)
+10. "in read me update proper adr based on the full architecture with all diagrams if needed wtih proper installation flow"
 
 How the output was checked:
 
