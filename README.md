@@ -49,6 +49,8 @@ Further reading: [docs/database-schema.md](docs/database-schema.md) (column-leve
 | ![Dashboard](frontend/docs/screenshots/dashboard-light.png) | ![Dashboard dark](frontend/docs/screenshots/dashboard-dark.png) |
 | **Invoice review** | **Documents** |
 | ![Invoice detail](frontend/docs/screenshots/invoice-detail-light.png) | ![Documents](frontend/docs/screenshots/documents-light.png) |
+| **Cross-checks (PDF vs Excel)** | **Documents (dark)** |
+| ![Cross-checks](frontend/docs/screenshots/cross-checks-light.png) | ![Documents dark](frontend/docs/screenshots/documents-dark.png) |
 
 ## 3. Installation
 
