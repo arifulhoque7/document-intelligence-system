@@ -233,3 +233,26 @@ def test_redelivered_job_does_not_reprocess_finished_document(admin, fake_llm, t
     assert fake_llm.calls == calls
     assert admin.get(f"/api/documents/{doc_id}").json()["attempts"] == 1
     assert admin.get(f"/api/invoices/{inv_id}").json()["customer_name"] == "Corrected By Reviewer"
+
+
+def test_parallel_run_on_same_document_is_skipped(admin, fake_llm, truths, db):
+    """A second worker must not process a document another worker holds (no duplicate invoices)."""
+    import uuid
+
+    from sqlalchemy import text
+
+    from app.core.db import engine
+    from app.models import Document
+    from app.services.pipeline import process_document
+
+    doc_id = uuid.UUID(upload(admin, ("a.pdf", synth.render_pdf([truths[0]])))["accepted"][0]["id"])
+    db.get(Document, doc_id).status = "queued"  # looks claimable, like a stale job being requeued
+    db.commit()
+    calls = fake_llm.calls
+    with engine.connect() as other_worker:
+        other_worker.scalar(text("SELECT pg_try_advisory_lock(:k)"), {"k": doc_id.int % (2**63)})
+        process_document(db, doc_id)
+        other_worker.scalar(text("SELECT pg_advisory_unlock(:k)"), {"k": doc_id.int % (2**63)})
+
+    assert fake_llm.calls == calls
+    assert len(admin.get(f"/api/documents/{doc_id}").json()["invoices"]) == 1

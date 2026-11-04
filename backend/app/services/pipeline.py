@@ -6,9 +6,11 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
+from app.core.db import engine
 from app.llm import LLMError, ProviderConfig, active_config, embed, extract_invoices
 from app.models import Document, DocumentPage, Invoice, InvoiceRevision, ProcessingEvent
 from app.processing.normalize import norm_invoice_number, parse_amount, parse_currency, parse_date
@@ -160,6 +162,24 @@ def embedding_text(inv: Invoice) -> str:
 
 
 def process_document(db: Session, doc_id: uuid.UUID) -> None:
+    """Run the pipeline for one document, at most one run per document at a time.
+
+    A Postgres advisory lock on a dedicated connection guards the whole run: a duplicate job (broker
+    redelivery, or a slow job requeued as stuck) skips instead of processing the document twice in
+    parallel. The lock is released when the run ends, or by Postgres when a crashed worker's connection
+    drops, so crash recovery still works."""
+    key = doc_id.int % (2**63)
+    with engine.connect() as lock_conn:
+        if not lock_conn.scalar(text("SELECT pg_try_advisory_lock(:k)"), {"k": key}):
+            log.info("Document %s is already being processed by another worker; skipping", doc_id)
+            return
+        try:
+            _run_pipeline(db, doc_id)
+        finally:
+            lock_conn.execute(text("SELECT pg_advisory_unlock(:k)"), {"k": key})
+
+
+def _run_pipeline(db: Session, doc_id: uuid.UUID) -> None:
     """Run the full pipeline. Expected failures mark the document failed; transient LLM errors propagate
     (as LLMError with transient=True) so the job layer can retry."""
     doc = db.get(Document, doc_id)

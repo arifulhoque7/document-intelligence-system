@@ -9,7 +9,7 @@ An AI-powered system that reads business documents (digital and scanned PDF, JPG
 | **AI** | Pluggable LLM providers chosen in the UI: Claude, OpenAI, Gemini, Ollama (local). Strict JSON-schema extraction, grounding check |
 | **Data** | PostgreSQL 16 + pgvector: full-text keyword search, semantic search, hybrid ranking |
 | **Frontend** | Next.js 15 (App Router), TypeScript, Tailwind CSS v4, shadcn-style components, light and dark themes |
-| **Delivery** | Docker Compose (5 services), 72 automated tests, an evaluation harness with measured results |
+| **Delivery** | Docker Compose (5 services), 73 automated tests, an evaluation harness with measured results |
 | **Not tested** | Live Claude, OpenAI and Gemini calls (only the local Ollama model ran end to end), scale-out and load, real company documents, non-English text, Safari/Firefox/mobile, security scanning. Full list of 27 gaps: [8.5 Not tested](#85-not-tested) |
 
 ## Contents
@@ -580,20 +580,20 @@ Everything below was run on this codebase; nothing is estimated. What was **not*
 
 ```bash
 docker compose up -d db redis
-cd backend && .venv/bin/python -m pytest -v     # 72 passed, output in docs/test-results.txt
+cd backend && .venv/bin/python -m pytest -v     # 73 passed, output in docs/test-results.txt
 cd ../frontend && npm test && npm run build     # invoice form diff check, type check, lint
 ```
 
 Backend tests run against a real PostgreSQL database (`docintel_test`, created by `backend/initdb/`), execute Celery tasks inline, and replace the network LLM with a deterministic fake that parses the synthetic layouts, so they are fast (about 27 s), free and repeatable. Test files are rendered on the fly by `devtools/synth.py`.
 
-### 8.2 Automated tests (72)
+### 8.2 Automated tests (73)
 
 | Suite | Tests | What is proven |
 |---|---|---|
 | `test_processing.py` | 19 | Types detected by content even with the wrong extension; digital PDFs use the text layer; scanned PDFs fall back to OCR (confidence above 70%, number and total read); OCR on light and heavy degraded photos; a 40-item invoice spanning pages stays one chunk; a 4-invoice PDF splits into 4; every TIFF frame is read, totals on the last page; XLSX with two sheets, XLS and CSV map every field exactly; an unrecognised sheet layout is left for the LLM; truncated PDF, blank image, corrupt PNG, corrupt XLSX, empty CSV and password-protected PDF fail with clean messages; the page limit is enforced |
 | `test_normalize_validation.py` | 21 | Amount parsing for 10 formats (`1,234.50`, `1.234,50`, `(12.00)`, `BDT 3,000`, empty, text); dates in several formats with day-first ambiguity flagged; currency symbols and invoice-number keys; a clean invoice raises nothing; missing fields, total mismatch, line-item and sum mismatches, rounding tolerance, negative, future, implausible tax and unknown currency; invoices without tax; grounding caps confidence on values not in the text; reviewer-typed values are not flagged |
 | `test_llm.py` | 12 | The schema is strict at every level (closed objects, all keys required); invalid JSON and schema violations become errors; a missing key fails before any call; nulls stay null and are never filled in; a hallucinated supplier loses confidence; Claude 429 is transient and 400 permanent; Claude refusals are reported and requests carry structured output, low effort and fallbacks; OpenAI timeouts are transient; Claude has no embeddings; the Gemini schema is accepted by the Google SDK |
-| `test_api.py` | 20 | Login required; login rate limit; reviewers cannot change settings; security headers; a mixed batch (PDF, bundle, XLSX, CSV, a fake PDF with `../../` in its name) processes end to end with correct fields, events, text and attachment download; duplicates flagged; a wrong total is flagged, corrected, re-validated, versioned and approved; bad corrections refused (422); keyword filters and sort whitelist; keyword, semantic and hybrid search; semantic without an embedding provider (503) and hybrid fallback; PDF vs Excel cross-check flags both records; LLM failure then bulk reprocess; transient failure gives up cleanly; corrupted, empty and oversized uploads; spreadsheets never call the LLM; provider keys encrypted at rest and only shown masked; a redelivered job never reprocesses a finished document or wipes a correction |
+| `test_api.py` | 21 | Login required; login rate limit; reviewers cannot change settings; security headers; a mixed batch (PDF, bundle, XLSX, CSV, a fake PDF with `../../` in its name) processes end to end with correct fields, events, text and attachment download; duplicates flagged; a wrong total is flagged, corrected, re-validated, versioned and approved; bad corrections refused (422); keyword filters and sort whitelist; keyword, semantic and hybrid search; semantic without an embedding provider (503) and hybrid fallback; PDF vs Excel cross-check flags both records; LLM failure then bulk reprocess; transient failure gives up cleanly; corrupted, empty and oversized uploads; spreadsheets never call the LLM; provider keys encrypted at rest and only shown masked; a redelivered job never reprocesses a finished document or wipes a correction; a second worker skips a document another worker is processing |
 | `frontend/lib/invoiceForm.test.mjs` | 1 | The invoice form sends only changed fields, with null to clear |
 
 ### 8.3 End-to-end and manual verification
@@ -605,7 +605,7 @@ Backend tests run against a real PostgreSQL database (`docintel_test`, created b
 | Every screen | Playwright against the production build in light and dark: login, dashboard, documents, document detail, invoice review (edit, save, history, approve), review queue, invoices, search, cross-checks, settings | All render with real data; screenshots in [section 2](#2-screenshots) |
 | Accuracy, success and failure rates | `eval/run_eval.py`: 74 labeled documents uploaded through the API | [Section 9](#9-evaluation-results) |
 | Large documents | `eval/benchmark_large.py`: 1005-page digital PDF and 100-page scanned PDF | 4.8 s and 56 s; [section 9](#9-evaluation-results) |
-| Recovery after a machine restart | Restarted the host with jobs pending | Found the redelivery bug below; fixed with a regression test |
+| Recovery after a machine restart | Restarted the host with jobs pending | Found the redelivery and parallel-run bugs below; both fixed with regression tests |
 | Diagrams | Parsed and rendered all 10 Mermaid diagrams with Mermaid 11 | All render |
 
 ### 8.4 Bugs found by testing (all fixed)
@@ -614,6 +614,7 @@ Backend tests run against a real PostgreSQL database (`docintel_test`, created b
 |---|---|---|
 | Running OCR on a multi-page TIFF | Auto-contrast with a 1% cutoff erased all text on nearly blank pages, losing the totals on page 2 | Contrast without cutoff, plus a raw-image retry |
 | Restarting the machine | Redelivered queue messages reprocessed finished documents and could wipe reviewer corrections | Worker skips documents that are not queued or processing |
+| Requeueing a job that was still running | Two workers processed the same document at once and each saved its invoices, so the document showed every invoice twice | Per-document Postgres advisory lock for the whole run; a duplicate job skips, and the lock frees itself if a worker crashes |
 | Killing a worker | Unacknowledged jobs stayed queued for the broker's one-hour visibility timeout | Stale-job recovery after 10 minutes, in the UI and the API |
 | Testing a Gemini key from Settings | The Google SDK rejected the JSON schema; the endpoint returned a bare 500 | Schema converted to Gemini's subset; test endpoint reports any error as text |
 | Uploading the same file several times | The duplicate warning was repeated once per earlier copy | Issues de-duplicated |
@@ -732,7 +733,7 @@ Read the scanned row as: OCR, not the design, is the throughput limit (about 0.5
 │   │   ├── processing/         detect, loaders, ocr, segment, sheets, normalize
 │   │   └── llm/                base, prompts, providers/{claude,openai,gemini,ollama}
 │   ├── devtools/synth.py       synthetic invoice generator with ground truth
-│   └── tests/                  72 tests + fake LLM
+│   └── tests/                  73 tests + fake LLM
 ├── frontend/
 │   ├── app/                    pages, runtime API proxy
 │   ├── components/             shell, documents, invoices, settings, ui

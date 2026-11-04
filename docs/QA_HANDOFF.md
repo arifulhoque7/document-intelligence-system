@@ -9,9 +9,9 @@ The whole system was built in one cycle and has been exercised on one machine (m
 | Scope | Count |
 |---|---|
 | Major features | 8 |
-| Hardening found during QA | 6 fixes |
+| Hardening found during QA | 7 fixes |
 | Services | 5 (web, api, worker, db, redis) |
-| Automated tests | 72 backend + 1 frontend unit check |
+| Automated tests | 73 backend + 1 frontend unit check |
 | Labeled evaluation documents | 74 (54 synthetic, 20 real receipts) |
 | Commits | 9 · 162 files · +20,348 lines |
 
@@ -222,6 +222,7 @@ Each chunk of text goes to the active provider with a strict JSON schema in whic
 |---|---|---|---|
 | OCR | Auto-contrast with a 1% cutoff erased all text on nearly blank pages (lost totals on page 2 of multi-page scans) | Multi-page TIFF: totals on the last page are read | `test_multiframe_tiff_reads_every_page` |
 | Worker | A job redelivered after a restart reprocessed finished documents and could wipe reviewer corrections | Correct an invoice, restart the stack with messages pending: the correction survives | `test_redelivered_job_does_not_reprocess_finished_document` |
+| Worker | A job requeued as stuck while it was still running made two workers process one document at once; every invoice was saved twice | Requeue a long-running document from **Retry failed or stuck**: it is processed once and shows each invoice once | `test_parallel_run_on_same_document_is_skipped` |
 | Worker | Jobs lost when a worker died before acknowledging stayed queued for an hour | Requeue from **Retry failed or stuck** after 10 minutes without progress | `routers/documents.py` `_stale` |
 | Gemini | The SDK rejected our JSON schema (`additionalProperties`, `anyOf null`), so the provider test returned a bare 500 | Gemini test returns a result or a readable error | `test_gemini_schema_conversion_is_accepted_by_sdk` |
 | Validation | The same duplicate message appeared once per earlier copy of a file | Upload a file three times: one `DUPLICATE_INVOICE` line | `services/validation.py` |
@@ -253,7 +254,7 @@ Each chunk of text goes to the active provider with a strict JSON schema in whic
 
 | Check | How | Result |
 |---|---|---|
-| Automated backend tests | `pytest -v` against Postgres `docintel_test` | 72 passed ([test-results.txt](test-results.txt)) |
+| Automated backend tests | `pytest -v` against Postgres `docintel_test` | 73 passed ([test-results.txt](test-results.txt)) |
 | Frontend | `npm test`, `npm run build` (type check, lint) | passed |
 | Full Docker stack | `docker compose up --build -d` | 5 services up; api, db, redis healthy |
 | End to end in Docker | Login through the web proxy, provider test, CSV upload, heavy scanned PDF upload | CSV 3 invoices in 0.47 s; scanned PDF 8/8 fields and 4/4 line items correct in 22 s; Celery prefork in Linux |
@@ -261,6 +262,6 @@ Each chunk of text goes to the active provider with a strict JSON schema in whic
 | Accuracy and rates | `eval/run_eval.py`, 74 documents through the API | [eval/results/report.md](../eval/results/report.md) |
 | Large files | `eval/benchmark_large.py` | 1005 pages in 4.8 s; 100 OCR pages in 56 s ([benchmark](../eval/results/benchmark_large.md)) |
 | Diagrams | Mermaid 11 parse and render of all 10 README diagrams | all render |
-| Restart recovery | Machine restart with jobs pending | found and fixed the redelivery bug; regression test added |
+| Restart recovery | Machine restart with jobs pending | found and fixed the redelivery and parallel-run bugs; regression tests added |
 
 *Generated from `git log` and `git diff --shortstat` on `main` (9 commits, 162 files, +20,348 lines), the test run in `docs/test-results.txt`, and the measured results in `eval/results/`, on 2026-11-04.*
