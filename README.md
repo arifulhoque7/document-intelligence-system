@@ -9,7 +9,7 @@ An AI-powered system that reads business documents (digital and scanned PDF, JPG
 | **AI** | Pluggable LLM providers chosen in the UI: Claude, OpenAI, Gemini, Ollama (local). Strict JSON-schema extraction, grounding check |
 | **Data** | PostgreSQL 16 + pgvector: full-text keyword search, semantic search, hybrid ranking |
 | **Frontend** | Next.js 15 (App Router), TypeScript, Tailwind CSS v4, shadcn-style components, light and dark themes |
-| **Delivery** | Docker Compose (5 services), 71 automated tests, an evaluation harness with measured results |
+| **Delivery** | Docker Compose (5 services), 72 automated tests, an evaluation harness with measured results |
 
 ## Contents
 
@@ -400,6 +400,7 @@ flowchart LR
 | LLM 429 / 5xx / timeout / connection error | Transient: Celery retries after 15 s, 30 s, 60 s, then `failed` with the reason |
 | LLM 4xx, refusal, invalid JSON, schema violation | Permanent: `failed` with the provider's message; reprocess after fixing settings |
 | Worker killed mid-job | `acks_late` + `reject_on_worker_lost` return the job to the queue; jobs with no progress for 10 minutes can be requeued |
+| Same job delivered twice (broker or machine restart) | The worker skips any document that is no longer queued or processing, so a duplicate message never reprocesses a finished document or wipes reviewer corrections |
 | Embedding provider down | Document still completes with a warning event; hybrid search falls back to keyword |
 | Unexpected exception | Stack trace logged; document `failed` with a generic message (no internals leaked) |
 
@@ -574,7 +575,7 @@ Extracted invoice (`GET /api/invoices/{id}`, abridged). Missing values are `null
 
 ```bash
 docker compose up -d db redis
-cd backend && .venv/bin/python -m pytest -q        # 71 passed (docs/test-results.txt)
+cd backend && .venv/bin/python -m pytest -q        # 72 passed (docs/test-results.txt)
 cd ../frontend && npm test && npm run build         # form-diff unit test, type check, lint
 ```
 
@@ -666,7 +667,7 @@ Read the scanned row as: OCR, not the design, is the throughput limit (about 0.5
 │   │   ├── processing/         detect, loaders, ocr, segment, sheets, normalize
 │   │   └── llm/                base, prompts, providers/{claude,openai,gemini,ollama}
 │   ├── devtools/synth.py       synthetic invoice generator with ground truth
-│   └── tests/                  71 tests + fake LLM
+│   └── tests/                  72 tests + fake LLM
 ├── frontend/
 │   ├── app/                    pages, runtime API proxy
 │   ├── components/             shell, documents, invoices, settings, ui

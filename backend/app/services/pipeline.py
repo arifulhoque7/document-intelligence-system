@@ -163,7 +163,10 @@ def process_document(db: Session, doc_id: uuid.UUID) -> None:
     """Run the full pipeline. Expected failures mark the document failed; transient LLM errors propagate
     (as LLMError with transient=True) so the job layer can retry."""
     doc = db.get(Document, doc_id)
-    if not doc:
+    # A redelivered message (broker restart, late ack) must not reprocess a finished document and wipe
+    # reviewer corrections. Real reprocess requests set "queued" first; "processing" means a crashed run.
+    if not doc or doc.status not in ("queued", "processing"):
+        log.info("Skipping job for document %s (status %s)", doc_id, doc.status if doc else "missing")
         return
     doc.status, doc.progress, doc.error = "processing", 0, None
     doc.attempts += 1

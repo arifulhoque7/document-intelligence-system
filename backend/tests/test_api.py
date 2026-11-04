@@ -215,3 +215,21 @@ def test_provider_key_is_encrypted_and_masked(admin, db):
     assert admin.put("/api/settings/providers/ollama", json={"base_url": "file:///etc/passwd"}).status_code == 422
     # Empty string removes the key.
     assert admin.put("/api/settings/providers/openai", json={"api_key": ""}).json()["has_key"] is False
+
+
+def test_redelivered_job_does_not_reprocess_finished_document(admin, fake_llm, truths, db):
+    """A duplicate queue message after a broker or worker restart must not wipe a reviewed document."""
+    import uuid
+
+    from app.services.pipeline import process_document
+
+    doc_id = upload(admin, ("a.pdf", synth.render_pdf([truths[0]])))["accepted"][0]["id"]
+    inv_id = admin.get("/api/invoices").json()["items"][0]["id"]
+    admin.patch(f"/api/invoices/{inv_id}", json={"customer_name": "Corrected By Reviewer"})
+    calls = fake_llm.calls
+
+    process_document(db, uuid.UUID(doc_id))  # what a redelivered message would run
+
+    assert fake_llm.calls == calls
+    assert admin.get(f"/api/documents/{doc_id}").json()["attempts"] == 1
+    assert admin.get(f"/api/invoices/{inv_id}").json()["customer_name"] == "Corrected By Reviewer"
